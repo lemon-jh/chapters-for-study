@@ -11,6 +11,16 @@ public class RPCRequest {
 	private byte[] reqMethod;
 	
 	private byte[] requestParams;
+	
+	
+
+	public RPCRequest(int sessionId, short requestId, byte[] reqMethod, byte[] requestParams) {
+		super();
+		this.sessionId = sessionId;
+		this.requestId = requestId;
+		this.reqMethod = reqMethod;
+		this.requestParams = requestParams;
+	}
 
 	public int getSessionId() {
 		return sessionId;

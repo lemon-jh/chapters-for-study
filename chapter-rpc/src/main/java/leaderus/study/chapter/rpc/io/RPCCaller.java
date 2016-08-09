@@ -125,6 +125,23 @@ public class RPCCaller {
 		}
 		
 	}
+	
+	public static void main(String[] args) {
+		
+		final RPCCaller caller = new RPCCaller();
+		
+		for(int i=0;i<10;i++){
+			final int sessionid = i; 
+			new Thread(){
+				public void run() {
+					for(int j=0 ;j<10;j++) {
+						RPCResponse res = caller.doRPCCall(new RPCRequest(sessionid, (short) j, "method".getBytes(), "param".getBytes()));
+						System.out.println(res);
+					}
+				};
+			}.start();
+		}
+	}
 
 }
 
