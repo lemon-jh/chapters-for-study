@@ -33,6 +33,7 @@ public class RPCCaller {
 		init();
 		serializeStrategy = new SerializeStrategy<>(type);
 		rpcThread = new RpcThread();
+		rpcThread.setDaemon(false);
 		rpcThread.start();
 	}
 	
@@ -97,12 +98,12 @@ public class RPCCaller {
 			
 			byte [] bys = null;
 			
-			try {
-				Thread.sleep(10);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+//			try {
+//				Thread.sleep(1000);
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
 			
 			try{
 				
@@ -123,7 +124,7 @@ public class RPCCaller {
 					threadPoolExecutor.submit(new RpcJob(request));
 				}
 				
-				requestDataBuffer.clear();
+				requestDataBuffer.compact();
 				
 			}finally {
 				requestLock.unlock();
