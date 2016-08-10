@@ -1,12 +1,18 @@
 package leaderus.study.chapter.rpc.http;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
 import leaderus.study.chapter.rpc.utils.RpsConstans;
 
-public class RPCResponse {
+public class RPCResponse implements Serializable {
 
-	 private int sessionId;
+	 /**
+	 * 
+	 */
+	private static final long serialVersionUID = -8360753201537366089L;
+
+	private int sessionId;
 	 
 	 private short requestId;
 	 

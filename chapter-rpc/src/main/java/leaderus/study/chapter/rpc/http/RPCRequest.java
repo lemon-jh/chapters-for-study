@@ -1,9 +1,18 @@
 package leaderus.study.chapter.rpc.http;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
-public class RPCRequest {
+import org.msgpack.annotation.Message;
+
+@Message
+public class RPCRequest implements Serializable{
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -1678354882272661100L;
+
 	private int sessionId;// 会话Id
 	
 	private short requestId;// 请求的序号，从0开始，达到最大值后重新复位为0
@@ -12,7 +21,7 @@ public class RPCRequest {
 	
 	private byte[] requestParams;
 	
-	
+	public RPCRequest() {}
 
 	public RPCRequest(int sessionId, short requestId, byte[] reqMethod, byte[] requestParams) {
 		super();

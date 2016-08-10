@@ -10,7 +10,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import leaderus.study.chapter.rpc.event.RPCRequestEvent;
 import leaderus.study.chapter.rpc.http.RPCRequest;
 import leaderus.study.chapter.rpc.http.RPCResponse;
-import leaderus.study.chapter.rpc.serialize.SerializeProtocol;
+import leaderus.study.chapter.rpc.serialize.SerializeStrategy;
 import leaderus.study.chapter.rpc.utils.RpsConstans;
 
 public class RPCCaller {
@@ -27,24 +27,40 @@ public class RPCCaller {
 
 	private final RpcThread rpcThread;
 	
-	private SerializeProtocol<RPCRequest> res;
+	private SerializeStrategy<RPCRequest> serializeStrategy;
 
+	public RPCCaller(SerializeStrategy.SerializeType type) {
+		init();
+		serializeStrategy = new SerializeStrategy<>(type);
+		rpcThread = new RpcThread();
+		rpcThread.start();
+	}
+	
 	public RPCCaller() {
+		this(SerializeStrategy.SerializeType.NOMAL);
+	}
+	
+	private void init() {
 		requestDataBuffer = ByteBuffer.allocate(10 * RpsConstans._M);
 		requestLock = new ReentrantLock();
 		threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-		rpcThread = new RpcThread();
-		rpcThread.start();
 	}
 
 	public RPCResponse doRPCCall(RPCRequest request) {
 		
-		byte [] bytes = this.res.encode(request);
+		System.out.println(Thread.currentThread().getName() + " ==> doCall");
+		
+		byte [] bytes = this.serializeStrategy.encode(request);
 		
 		try {
 			requestLock.lock();
+			
+			StringBuffer bu = new StringBuffer(Thread.currentThread().getName() + " before buffer = " + requestDataBuffer);
+			bu.append(" , request bytes len = " + bytes.length);
 			requestDataBuffer.putInt(bytes.length);
 			requestDataBuffer.put(bytes);
+			bu.append(" , after buffer =  " + requestDataBuffer);
+			//System.out.println(bu.toString());
 		}finally{
 			requestLock.unlock();
 		}
@@ -81,42 +97,53 @@ public class RPCCaller {
 			
 			byte [] bys = null;
 			
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 			try{
+				
 				requestLock.lock();
 				
 				requestDataBuffer.flip();
 				
-				int length = requestDataBuffer.getInt();
+				while(requestDataBuffer.hasRemaining()) {
+					
+					int length = requestDataBuffer.getInt();
+					
+					bys = new byte[length];
+					
+					requestDataBuffer.get(bys, 0, length);
+					
+					RPCRequest request = serializeStrategy.decode(bys,RPCRequest.class);
+					
+					threadPoolExecutor.submit(new RpcJob(request));
+				}
 				
-				bys = new byte[length];
-				
-				requestDataBuffer.get(bys, 0, length);
+				requestDataBuffer.clear();
 				
 			}finally {
 				requestLock.unlock();
 			}
-			
-			RPCRequest request = res.decode(bys);
-			
-			threadPoolExecutor.submit(new RpcJob(request));
+
 		}
 	}
 	
 	private final class RpcJob extends Thread {
 		
-		private RPCRequest request;
-		
 		private RPCResponse response;
 		
 		public RpcJob(RPCRequest request) {
 			super();
-			this.request = request;
+			System.out.println("==> 接受到 request = " + request);
 			response = new RPCResponse(request);
 		}
 		
 		@Override
 		public void run() {
-			System.out.println(this.request);
 			try {
 				responseQueue.transfer(response);
 			} catch (InterruptedException e) {
@@ -125,23 +152,5 @@ public class RPCCaller {
 		}
 		
 	}
-	
-	public static void main(String[] args) {
-		
-		final RPCCaller caller = new RPCCaller();
-		
-		for(int i=0;i<10;i++){
-			final int sessionid = i; 
-			new Thread(){
-				public void run() {
-					for(int j=0 ;j<10;j++) {
-						RPCResponse res = caller.doRPCCall(new RPCRequest(sessionid, (short) j, "method".getBytes(), "param".getBytes()));
-						System.out.println(res);
-					}
-				};
-			}.start();
-		}
-	}
-
 }
 
