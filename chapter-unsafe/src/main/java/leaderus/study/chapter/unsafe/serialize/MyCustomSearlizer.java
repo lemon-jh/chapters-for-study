@@ -70,7 +70,7 @@ public class MyCustomSearlizer {
 	public static void main(String[] args) {
 		
 		Map<String,String> props = new HashMap<>();
-		
+
 		props.put("age", "1");
 		props.put("name", "ZHANGSANN");
 		props.put("hasMoney", "true");
