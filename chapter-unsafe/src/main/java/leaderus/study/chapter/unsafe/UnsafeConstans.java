@@ -32,7 +32,31 @@ public class UnsafeConstans {
 	public static Unsafe getUnsafe() {
 		return _UNSAFE;
 	}
-	
+
+	public static int _getInt(Object o,long offset){
+		return _UNSAFE.getInt(o,offset);
+	}
+
+	public static int _getIntByField(Object o,Field field) {
+		return _getInt(o,_UNSAFE.objectFieldOffset(field));
+	}
+
+	public static boolean _getBoolean(Object o,long offset) {
+		return _UNSAFE.getBoolean(o,offset);
+	}
+
+	public static boolean _getBooleanByField(Object o,Field field) {
+		return _getBoolean(o,_UNSAFE.objectFieldOffset(field));
+	}
+
+	public static Object _getObject(Object o,long offset) {
+		return _UNSAFE.getObject(o,offset);
+	}
+
+	public static Object _getObjectByField(Object o,Field field) {
+		return _getObject(o,_UNSAFE.objectFieldOffset(field));
+	}
+
 	public static void _putInt(Object o,long offset,int value) {
 		_UNSAFE.putInt(o, offset, value);
 	}
@@ -46,17 +70,15 @@ public class UnsafeConstans {
 	}
 	
 	public static void _putBooleanByField(Object o,Field field,boolean value) {
-		_UNSAFE.putBoolean(o, _UNSAFE.objectFieldOffset(field), value);
+		_putBoolean(o, _UNSAFE.objectFieldOffset(field), value);
 	}
 	
-	public static void _putStringByField(Object o,Field field,String value) {
-		_putString(o, _UNSAFE.objectFieldOffset(field), value);
+	public static void _putObjectByField(Object o,Field field,Object value) {
+		_putObject(o, _UNSAFE.objectFieldOffset(field), value);
 	}
 	
-	public static final void _putString(Object o,long offset,String str) {
-		char [] values = str.toCharArray();
-	    long bytesToCopy = values.length;
-	    _UNSAFE.copyMemory(values, charArrayOffset, o, offset, bytesToCopy);
+	private static final void _putObject(Object o,long offset,Object value) {
+		_UNSAFE.putObject(o, offset, value);
 	}
 	
 }

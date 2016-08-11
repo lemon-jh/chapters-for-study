@@ -12,6 +12,15 @@ public class Person implements Serializable {
 
 	private boolean hasMoney;
 
+	public Person() {
+	}
+
+	public Person(int age, String name, boolean hasMoney) {
+		this.age = age;
+		this.name = name;
+		this.hasMoney = hasMoney;
+	}
+
 	public int getAge() {
 		return age;
 	}
