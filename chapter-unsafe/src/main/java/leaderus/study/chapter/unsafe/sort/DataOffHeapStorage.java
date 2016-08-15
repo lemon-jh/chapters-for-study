@@ -9,5 +9,7 @@ public interface DataOffHeapStorage {
 
     //读取相应位置的数据并返回
     public byte[] getRow(long startPos,short dataLength);
+    
+    public void close() ;
 
 }

@@ -1,6 +1,7 @@
 package leaderus.study.chapter.unsafe;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 import sun.misc.Unsafe;
 
@@ -87,5 +88,15 @@ public class UnsafeConstans {
 		System.out.println(UnsafeConstans.byteArrayOffset +", len = " + len);
 		_UNSAFE.copyMemory(tar,0,des,pos+UnsafeConstans.byteArrayOffset,len);
 		return pos + len;
+	}
+	
+	public static Method getMethod(Class<?> cls, String name, Class<?>... params) throws Exception {
+		Method m = cls.getDeclaredMethod(name, params);
+		m.setAccessible(true);
+		return m;
+	}
+	
+	public static long roundTo4096(long i) {
+		return (i + 0xfffL) & ~0xfffL;
 	}
 }

@@ -3,11 +3,15 @@ package leaderus.study.chapter.unsafe.sort.io;
 import leaderus.study.chapter.unsafe.UnsafeConstans;
 import leaderus.study.chapter.unsafe.sort.DataOffHeapStorage;
 
+import java.io.File;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 /**
  * Created by zhang on 2016/8/13.
@@ -22,12 +26,17 @@ public class RowDataOffheapStorageByAddr implements DataOffHeapStorage {
 
     public RowDataOffheapStorageByAddr(String fileName) {
         //创建一个MappedByteBuffer 的映射文件存储，
+    	
+    	System.out.println("==> RowDataOffheapStorageByAddr init---");
+    	
+    	new File(fileName).delete();
+    	
         try(FileChannel channel = FileChannel.open(Paths.get(fileName),
                 StandardOpenOption.READ, StandardOpenOption.WRITE);) {
 
-            this.buffer = channel.map(FileChannel.MapMode.READ_WRITE,0,100 * UnsafeConstans._M);
+            this.buffer = channel.map(FileChannel.MapMode.READ_WRITE,0,300 * UnsafeConstans._M);
 
-            Class clazz = MappedByteBuffer.class;
+            Class<?> clazz = MappedByteBuffer.class;
 
             Field personNameField = null;
 
@@ -43,6 +52,7 @@ public class RowDataOffheapStorageByAddr implements DataOffHeapStorage {
 
             System.out.println("address = " + address);
 
+            channel.close();
 
         }catch (Exception e) {
             e.printStackTrace();
@@ -67,10 +77,27 @@ public class RowDataOffheapStorageByAddr implements DataOffHeapStorage {
 
         return bytes;
     }
+    
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public void close() {
+		AccessController.doPrivileged(new PrivilegedAction() {
+			public Object run() {
+				try {
+					Method getCleanerMethod = buffer.getClass().getMethod("cleaner", new Class[0]);
+					getCleanerMethod.setAccessible(true);
+					sun.misc.Cleaner cleaner = (sun.misc.Cleaner) getCleanerMethod.invoke(buffer, new Object[0]);
+					cleaner.clean();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return null;
+			}
+		});
+	}
 
     public static void main(String[] args) {
 
-        String fileName = "D://TEMP//list";
+        String fileName = "src/list";
 
         RowDataOffheapStorageByAddr storage = new RowDataOffheapStorageByAddr(fileName);
 
@@ -80,8 +107,9 @@ public class RowDataOffheapStorageByAddr implements DataOffHeapStorage {
 
         System.out.println(storage.addRow(bytes));
 
-
         System.out.println(storage.addRow(bytes2));
+        
+      //  storage.close();
 
         byte [] toBytes1 = storage.getRow(0l,(short) 4);
         byte [] toBytes = storage.getRow(4l,(short) 5);
