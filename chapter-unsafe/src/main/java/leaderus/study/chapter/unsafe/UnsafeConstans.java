@@ -7,6 +7,8 @@ import sun.misc.Unsafe;
 public class UnsafeConstans {
 
 	private static final Unsafe _UNSAFE;
+
+	public static final int _M = 1024 * 1024;
 	
     public static final int SIZE_OF_BOOLEAN = 1;
     
@@ -14,7 +16,7 @@ public class UnsafeConstans {
     
     public static final int SIZE_OF_LONG = 8;
     
-    private static final long charArrayOffset ;
+    public static final long byteArrayOffset ;
 	
 	static {
 		Unsafe unsafe;
@@ -26,7 +28,7 @@ public class UnsafeConstans {
             unsafe = null;
         }
         _UNSAFE = unsafe;
-        charArrayOffset = _UNSAFE.arrayBaseOffset(char[].class);
+		byteArrayOffset = _UNSAFE.arrayBaseOffset(byte[].class);
 	}
 	
 	public static Unsafe getUnsafe() {
@@ -80,5 +82,10 @@ public class UnsafeConstans {
 	private static final void _putObject(Object o,long offset,Object value) {
 		_UNSAFE.putObject(o, offset, value);
 	}
-	
+
+	public static long _byteArrayCopy(Object tar,Object des,int len,long pos) {
+		System.out.println(UnsafeConstans.byteArrayOffset +", len = " + len);
+		_UNSAFE.copyMemory(tar,0,des,pos+UnsafeConstans.byteArrayOffset,len);
+		return pos + len;
+	}
 }
