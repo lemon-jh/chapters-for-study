@@ -1,4 +1,3 @@
-
 package leaderus.study.chapter.unsafe.sort;
 
 import java.util.Random;
@@ -61,3 +60,4 @@ public class TestSorter {
 		sort();
 	}
 }
+
